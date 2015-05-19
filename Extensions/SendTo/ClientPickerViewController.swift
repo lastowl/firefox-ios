@@ -165,6 +165,7 @@ class ClientPickerViewController: UITableViewController {
                         self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: NSLocalizedString("Send", tableName: "SendTo", comment: "Navigation bar button to Send the current page to a device"), style: UIBarButtonItemStyle.Done, target: self, action: "send")
                         self.navigationItem.rightBarButtonItem?.enabled = false
                     }
+                    self.selectedClients.removeAllObjects()
                     self.tableView.reloadData()
                 }
             }
