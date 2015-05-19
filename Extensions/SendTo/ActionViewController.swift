@@ -19,6 +19,8 @@ class ActionViewController: UINavigationController, ClientPickerViewControllerDe
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        navigationBar.translucent = false
+
         if profile.getAccount() == nil {
             let instructionsViewController = InstructionsViewController()
             instructionsViewController.delegate = self
@@ -45,6 +47,9 @@ class ActionViewController: UINavigationController, ClientPickerViewControllerDe
     func clientPickerViewController(clientPickerViewController: ClientPickerViewController, didPickClients clients: [RemoteClient]) {
         // TODO: hook up Send Tab via Sync.
         // profile?.clients.sendItem(self.sharedItem!, toClients: clients)
+        for client in clients {
+            println("Sending tab to \(client.name)")
+        }
         finish()
     }
     
