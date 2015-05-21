@@ -23,6 +23,14 @@ private struct TabTrayControllerUX {
     static let CloseButtonEdgeInset = CGFloat(10)
     static let NumberOfColumnsCompact = 1
     static let NumberOfColumnsRegular = 3
+
+    // Moved from AppConstants temporarily until animation code is merged
+    static var StatusBarHeight: CGFloat {
+        if UIScreen.mainScreen().traitCollection.verticalSizeClass == .Compact {
+            return 0
+        }
+        return 20
+    }
 }
 
 private protocol CustomCellDelegate: class {
@@ -173,9 +181,9 @@ private class CustomCell: UICollectionViewCell {
         var offset: CGFloat = shouldOffset ? 2 : 1
 
         frame = CGRect(x: 0,
-                        y: container.frame.origin.y + AppConstants.ToolbarHeight + AppConstants.StatusBarHeight,
+                        y: container.frame.origin.y + AppConstants.ToolbarHeight + TabTrayControllerUX.StatusBarHeight,
                         width: container.frame.width,
-                        height: container.frame.height - (AppConstants.ToolbarHeight * offset + AppConstants.StatusBarHeight))
+                        height: container.frame.height - (AppConstants.ToolbarHeight * offset + TabTrayControllerUX.StatusBarHeight))
 
         container.insertSubview(self, atIndex: container.subviews.count)
         setupFrames()
@@ -186,12 +194,12 @@ private class CustomCell: UICollectionViewCell {
         let scrollOffset = table.contentOffset.y + table.contentInset.top
         if table.numberOfItemsInSection(0) > 0 {
             if let attr = table.collectionViewLayout.layoutAttributesForItemAtIndexPath(NSIndexPath(forItem: index, inSection: 0)) {
-                frame = CGRectOffset(attr.frame, -container.frame.origin.x, -container.frame.origin.y + AppConstants.ToolbarHeight + AppConstants.StatusBarHeight - scrollOffset)
+                frame = CGRectOffset(attr.frame, -container.frame.origin.x, -container.frame.origin.y + AppConstants.ToolbarHeight + TabTrayControllerUX.StatusBarHeight - scrollOffset)
             }
         } else {
             // TODO: fix this so the frame is where the first item *would* be
             frame = CGRect(x: 0,
-                        y: TabTrayControllerUX.Margin + AppConstants.ToolbarHeight + AppConstants.StatusBarHeight,
+                        y: TabTrayControllerUX.Margin + AppConstants.ToolbarHeight + TabTrayControllerUX.StatusBarHeight,
                         width: container.frame.width,
                         height: TabTrayControllerUX.CellHeight)
         }
@@ -398,7 +406,7 @@ class TabTrayController: UIViewController, UITabBarDelegate, UICollectionViewDel
         collectionView.dataSource = self
         collectionView.delegate = self
         collectionView.registerClass(CustomCell.self, forCellWithReuseIdentifier: CellIdentifier)
-        collectionView.contentInset = UIEdgeInsets(top: AppConstants.StatusBarHeight + AppConstants.ToolbarHeight, left: 0, bottom: 0, right: 0)
+        collectionView.contentInset = UIEdgeInsets(top: TabTrayControllerUX.StatusBarHeight + AppConstants.ToolbarHeight, left: 0, bottom: 0, right: 0)
 
         collectionView.backgroundColor = TabTrayControllerUX.BackgroundColor
 
