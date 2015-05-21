@@ -232,30 +232,70 @@ class TabManager : NSObject {
 }
 
 extension TabManager {
-    func encodeRestorableStateWithCoder(coder: NSCoder) {
-        coder.encodeInteger(count, forKey: "tabCount")
-        coder.encodeInteger(selectedIndex, forKey: "selectedIndex")
-        for i in 0..<count {
-            let tab = tabs[i]
-            coder.encodeObject(tab.url!, forKey: "tab-\(i)-url")
+    class SavedTab: NSObject, NSCoding {
+        let url: NSURL?
+        let isReaderMode: Bool
+        let isSelected: Bool
+
+        init(url: NSURL, isReaderMode: Bool, isSelected: Bool) {
+            self.url = url
+            self.isReaderMode = isReaderMode
+            self.isSelected = isSelected
+        }
+
+        required init(coder: NSCoder) {
+            self.url = coder.decodeObjectForKey("url") as? NSURL
+            self.isReaderMode = coder.decodeBoolForKey("isReaderMode")
+            self.isSelected = coder.decodeBoolForKey("isSelected")
+        }
+
+        func encodeWithCoder(coder: NSCoder) {
+            coder.encodeObject(url, forKey: "url")
+            coder.encodeBool(isReaderMode, forKey: "isReaderMode")
+            coder.encodeBool(isReaderMode, forKey: "isSelected")
         }
     }
 
+    func encodeRestorableStateWithCoder(coder: NSCoder) {
+        var savedTabs = [SavedTab]()
+        for (tabIndex, tab) in enumerate(tabs) {
+            if let url = tab.url, displayURL = tab.displayURL {
+                let savedTab = SavedTab(url: displayURL, isReaderMode: ReaderModeUtils.isReaderModeURL(url), isSelected: tabIndex == selectedIndex)
+                savedTabs.append(savedTab)
+            }
+        }
+        coder.encodeObject(savedTabs, forKey: "tabs")
+    }
+
     func decodeRestorableStateWithCoder(coder: NSCoder) {
-        let count: Int = coder.decodeIntegerForKey("tabCount")
+        var tabToSelect: Browser?
 
-        for i in 0..<count {
-            let url = coder.decodeObjectForKey("tab-\(i)-url") as! NSURL
-            self.addTab(request: NSURLRequest(URL: url), flushToDisk: false)
+        func addTabWithURL(url: NSURL, #isSelected: Bool) {
+            let tab = self.addTab(request: NSURLRequest(URL: url), flushToDisk: false)
+            if isSelected {
+                tabToSelect = tab
+            }
         }
 
-        let selectedIndex = coder.decodeIntegerForKey("selectedIndex")
-        if selectedIndex >= 0 && selectedIndex < tabs.count {
-            selectTab(tabs[selectedIndex])
-        } else if let firstTab = tabs.first {
-            selectTab(firstTab)
+        if let savedTabs = coder.decodeObjectForKey("tabs") as? [SavedTab] {
+            for savedTab in savedTabs {
+                if let url = savedTab.url {
+                    if savedTab.isReaderMode {
+                        if let url = ReaderModeUtils.encodeURL(url) {
+                            addTabWithURL(url, isSelected: savedTab.isSelected)
+                        }
+                    } else {
+                        addTabWithURL(url, isSelected: savedTab.isSelected)
+                    }
+                }
+            }
         }
-        storeChanges()
+
+        if let tab = tabToSelect ?? tabs.first {
+            selectTab(tab) // TODO Not sure if it is ok to call this with nil - Code is unclear.
+        }
+
+        storeChanges() // TODO Not sure if this should be here, see bug 1167310
     }
 }
 

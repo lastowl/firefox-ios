@@ -18,7 +18,7 @@ class WebServer {
     }
 
     func start() -> Bool {
-        return server.running || server.startWithPort(0, bonjourName: nil)
+        return server.running || server.startWithOptions([GCDWebServerOption_Port: 0, GCDWebServerOption_BindToLocalhost: true, GCDWebServerOption_AutomaticallySuspendInBackground: true], error: nil)
     }
 
     /// Convenience method to register a dynamic handler. Will be mounted at $base/$module/$resource
