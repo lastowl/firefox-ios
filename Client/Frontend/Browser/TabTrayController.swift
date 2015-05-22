@@ -361,7 +361,18 @@ class TabTrayController: UIViewController, UITabBarDelegate, UICollectionViewDel
     var addTabButton: UIButton!
     var settingsButton: UIButton!
 
+    func SELstatusBarFrameWillChange(notification: NSNotification) {
+        self.view.setNeedsLayout()
+    }
+
+    deinit {
+        NSNotificationCenter.defaultCenter().removeObserver(self, name: UIApplicationWillChangeStatusBarFrameNotification, object: nil)
+    }
+
     override func viewDidLoad() {
+        super.viewDidLoad()
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "SELstatusBarFrameWillChange:", name: UIApplicationWillChangeStatusBarFrameNotification, object: nil)
+
         view.accessibilityLabel = NSLocalizedString("Tabs Tray", comment: "Accessibility label for the Tabs Tray view.")
         tabManager.addDelegate(self)
 
@@ -435,8 +446,7 @@ class TabTrayController: UIViewController, UITabBarDelegate, UICollectionViewDel
         }
 
         collectionView.snp_remakeConstraints { make in
-            let topLayoutGuide = self.topLayoutGuide as! UIView
-            make.top.equalTo(topLayoutGuide.snp_bottom)
+            make.top.equalTo(navBar.snp_top)
             make.left.right.bottom.equalTo(self.view)
         }
     }

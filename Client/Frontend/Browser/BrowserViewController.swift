@@ -159,8 +159,20 @@ class BrowserViewController: UIViewController {
         }
     }
 
+    func SELstatusBarFrameWillChange(notification: NSNotification) {
+        if let statusBarFrame = notification.userInfo![UIApplicationStatusBarFrameUserInfoKey] as? NSValue {
+            statusBarOverlay.frame = statusBarFrame.CGRectValue()
+            self.view.setNeedsLayout()
+        }
+    }
+
+    deinit {
+        NSNotificationCenter.defaultCenter().removeObserver(self, name: UIApplicationWillChangeStatusBarFrameNotification, object: nil)
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "SELstatusBarFrameWillChange:", name: UIApplicationWillChangeStatusBarFrameNotification, object: nil)
 
         webViewContainer = UIView()
         view.addSubview(webViewContainer)
@@ -227,11 +239,6 @@ class BrowserViewController: UIViewController {
 
     override func viewDidDisappear(animated: Bool) {
         stopTrackingAccessibilityStatus()
-    }
-
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        statusBarOverlay.frame = CGRect(origin: CGPoint(x: 0, y: 0), size: CGSize(width: self.view.bounds.width, height: self.topLayoutGuide.length))
     }
 
     override func updateViewConstraints() {
